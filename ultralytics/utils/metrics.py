@@ -164,8 +164,9 @@ def bbox_iou(
     if MPDIoU:  # Minimum Point Distance IoU https://arxiv.org/abs/2307.07662
         if hw is None:
             raise ValueError("MPDIoU requires the normalization term 'hw' (input size in the boxes' units)")
-        d1 = (b2_x1 - b1_x1).pow(2) + (b2_y1 - b1_y1).pow(2)  # top-left corner distance squared
-        d2 = (b2_x2 - b1_x2).pow(2) + (b2_y2 - b1_y2).pow(2)  # bottom-right corner distance squared
+        # Distances in fp32: squared grid distances can overflow fp16 at large imgsz
+        d1 = (b2_x1 - b1_x1).float().pow(2) + (b2_y1 - b1_y1).float().pow(2)  # top-left corner distance squared
+        d2 = (b2_x2 - b1_x2).float().pow(2) + (b2_y2 - b1_y2).float().pow(2)  # bottom-right corner distance squared
         return iou - d1 / hw - d2 / hw  # MPDIoU
     if CIoU or DIoU or GIoU:
         cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
