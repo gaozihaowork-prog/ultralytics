@@ -132,8 +132,9 @@ def bbox_iou(
         CIoU (bool, optional): If True, calculate Complete IoU.
         MPDIoU (bool, optional): If True, calculate Minimum Point Distance IoU, requires `hw`. See
             https://arxiv.org/abs/2307.07662.
-        hw (torch.Tensor | float | None, optional): Input-size term for MPDIoU (`h * w` in the same coordinate units
-            as the boxes); for loss boxes in grid units pass the feature-map size (e.g. `ny * nx`).
+        hw (torch.Tensor | float | None, optional): MPDIoU normalization term, the squared input size W² + H² in the
+            same coordinate units as the boxes; for loss boxes in grid units pass the feature-map size squared (e.g.
+            `ny**2 + nx**2`).
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
@@ -163,7 +164,7 @@ def bbox_iou(
     iou = inter / union
     if MPDIoU:  # Minimum Point Distance IoU https://arxiv.org/abs/2307.07662
         if hw is None:
-            raise ValueError("MPDIoU requires the normalization term 'hw' (input size in the boxes' units)")
+            raise ValueError("MPDIoU requires the normalization term 'hw' (squared input size in the boxes' units)")
         # Distances in fp32: squared grid distances can overflow fp16 at large imgsz
         d1 = (b2_x1 - b1_x1).float().pow(2) + (b2_y1 - b1_y1).float().pow(2)  # top-left corner distance squared
         d2 = (b2_x2 - b1_x2).float().pow(2) + (b2_y2 - b1_y2).float().pow(2)  # bottom-right corner distance squared
