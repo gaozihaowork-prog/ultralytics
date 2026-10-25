@@ -132,7 +132,7 @@ class BboxLoss(nn.Module):
         fg_mask = fg_mask.nonzero(as_tuple=True)  # index once; long-index gathers and their backward do not sync
         weight = target_scores[fg_mask].sum(-1, keepdim=True)
         # MPDIoU normalization (grid-unit input size ny*nx); fp32 because the imgsz product overflows fp16
-        hw = imgsz[0].float() * imgsz[1].float() / stride[fg_mask[1]].float().pow(2)
+        hw = imgsz[0]**2+imgsz[1]**2
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, MPDIoU=True, hw=hw)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
